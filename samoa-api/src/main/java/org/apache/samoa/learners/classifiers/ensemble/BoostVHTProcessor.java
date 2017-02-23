@@ -82,12 +82,15 @@ public class BoostVHTProcessor implements Processor {
   protected Random random = new Random(); //TODO make random seed configurable
 
   //-----
-  // Weigths classifier
+  // lambda_m correct
   protected double[] scms;
   
-  // Weights instance
+  // lambda_m wrong
   protected double[] swms;
-  
+
+  // e_m
+  private double[] e_m;
+
   protected double trainingWeightSeenByModel; //todo:: (Faye) when is this updated?
   //-----
   
@@ -129,7 +132,7 @@ public class BoostVHTProcessor implements Processor {
 
       if (inEvent.isTesting()) {
         double[] combinedPrediction = computeBoosting(inEvent);
-        this.resultStream.put(newResultContentEvent(combinedPrediction,inEvent));
+        this.resultStream.put(newResultContentEvent(combinedPrediction, inEvent));
       }
 
       // estimate model parameters using the training data
@@ -154,7 +157,8 @@ public class BoostVHTProcessor implements Processor {
 
     this.scms = new double[ensembleSize];
     this.swms = new double[ensembleSize];
-    
+    this.e_m = new double[ensembleSize];
+
     //----instantiate the MAs
     for (int i = 0; i < ensembleSize; i++) {
       BoostMAProcessor newProc = new BoostMAProcessor.Builder(dataset)
@@ -179,12 +183,11 @@ public class BoostVHTProcessor implements Processor {
     
     Instance testInstance = inEvent.getInstance();
     DoubleVector combinedPredictions = new DoubleVector();
-  
+
     for (int i = 0; i < ensembleSize; i++) {
-      double[] predictionsPerEnsemble = mAPEnsemble[i].getVotesForInstance(testInstance);
       double memberWeight = getEnsembleMemberWeight(i);
       if (memberWeight > 0.0) {
-        DoubleVector vote = new DoubleVector(predictionsPerEnsemble);
+        DoubleVector vote = new DoubleVector(mAPEnsemble[i].getVotesForInstance(testInstance));
         if (vote.sumOfValues() > 0.0) {
           vote.normalize();
           vote.scaleValues(memberWeight);
@@ -205,63 +208,44 @@ public class BoostVHTProcessor implements Processor {
    */
   protected void train(InstanceContentEvent inEvent) {
     Instance trainInstance = inEvent.getInstance();
-    
-    //----debug comment
-//    System.out.println("Instance's weight: " + trainInstance.weight());
-    //----
+
+    this.trainingWeightSeenByModel += trainInstance.weight();
     double lambda_d = 1.0; //set the example's weight
-    double e_m = 0.0;
     
     for (int i = 0; i < ensembleSize; i++) { //for each base model
       int k = MiscUtils.poisson(lambda_d, this.random); //set k according to poisson
-      
-      Instance weightedInstance = trainInstance.copy();
+
       if (k > 0) {
+        Instance weightedInstance = trainInstance.copy();
         weightedInstance.setWeight(trainInstance.weight() * k);
         InstanceContentEvent instanceContentEvent = new InstanceContentEvent(inEvent.getInstanceIndex(), weightedInstance, true, false);
         instanceContentEvent.setClassifierIndex(i);
         instanceContentEvent.setEvaluationIndex(inEvent.getEvaluationIndex());
-        
         mAPEnsemble[i].process(instanceContentEvent);
       }
       //get prediction for the instance from the specific learner of the ensemble
       double[] prediction = mAPEnsemble[i].getVotesForInstance(trainInstance);
-  
-      this.trainingWeightSeenByModel = this.mAPEnsemble[i].getWeightSeenByModel();
+      
       //correctlyClassifies method of BoostMAProcessor
       if (mAPEnsemble[i].correctlyClassifies(trainInstance,prediction)) {
         this.scms[i] += lambda_d;
-        e_m = this.swms[i] / (this.scms[i] + this.swms[i]) ;
-        lambda_d *=  1.0 / (2.0 * (1.0 - e_m)) ;
-        
-//        if (this.scms[i] == 0.0) {
-//          lambda_d = 0.0;
-//        } else
-//        lambda_d *= this.trainingWeightSeenByModel / (2 * this.scms[i]);
-//        }
+        lambda_d *= this.trainingWeightSeenByModel / (2 * this.scms[i]);
       } else {
         this.swms[i] += lambda_d;
-        e_m = this.swms[i] / (this.scms[i] + this.swms[i]) ;
-        lambda_d *=  1.0 / (2.0 * e_m) ;
-        
-//        if (this.swms[i] == 0.0) {
-//          lambda_d = 0.0;
-//        } else{
-//        lambda_d *= this.trainingWeightSeenByModel / (2 * this.swms[i]);
-//        }
+        lambda_d *= this.trainingWeightSeenByModel / (2 * this.swms[i]);
       }
     }
   }
   
   private double getEnsembleMemberWeight(int i) {
     double em = this.swms[i] / (this.scms[i] + this.swms[i]);
-    if ((em == 0.0) || (em > 0.5)) {
-//    if ((em == 0.0) || (em > (1.0 - 1.0/this.numberOfClasses))) { //for SAMME
+//    if ((em == 0.0) || (em > 0.5)) {
+    if ((em == 0.0) || (em > (1.0 - 1.0/this.numberOfClasses))) { //for SAMME
       return 0.0;
     }
     double Bm = em / (1.0 - em);
-    return Math.log(1.0 / Bm);
-//    return Math.log(1.0 / Bm ) + Math.log(this.numberOfClasses - 1); //for SAMME
+//    return Math.log(1.0 / Bm);
+    return Math.log(1.0 / Bm ) + Math.log(this.numberOfClasses - 1); //for SAMME
   }
   
   /**
