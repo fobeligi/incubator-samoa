@@ -90,7 +90,7 @@ public class BoostVHTProcessor implements Processor {
 
   // e_m
   private double[] e_m;
-
+  
   protected double trainingWeightSeenByModel; //todo:: (Faye) when is this updated?
   //-----
   
@@ -158,7 +158,7 @@ public class BoostVHTProcessor implements Processor {
     this.scms = new double[ensembleSize];
     this.swms = new double[ensembleSize];
     this.e_m = new double[ensembleSize];
-
+    
     //----instantiate the MAs
     for (int i = 0; i < ensembleSize; i++) {
       BoostMAProcessor newProc = new BoostMAProcessor.Builder(dataset)
