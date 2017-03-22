@@ -93,7 +93,7 @@ public class BoostVHTProcessor implements Processor {
   
   protected double trainingWeightSeenByModel; //todo:: (Faye) when is this updated?
   //-----
-  
+
   
   //---for SAMME
   private int numberOfClasses;
@@ -142,7 +142,11 @@ public class BoostVHTProcessor implements Processor {
     } else if (event instanceof LocalResultContentEvent) {
       LocalResultContentEvent lrce = (LocalResultContentEvent) event;
       for (int i = 0; i < ensembleSize; i++) {
-        mAPEnsemble[i].process(lrce);
+        if (lrce.getEnsembleId() == mAPEnsemble[i].getProcessorId()){
+//          nOfMsgPerEnseble[i]++;
+//          System.out.println("-.-.-.-ensemble: " + i+ ",-.- nOfMsgPerEnseble: " + nOfMsgPerEnseble[i]);
+          mAPEnsemble[i].process(lrce);
+        }
       }
     }
 
@@ -158,7 +162,7 @@ public class BoostVHTProcessor implements Processor {
     this.scms = new double[ensembleSize];
     this.swms = new double[ensembleSize];
     this.e_m = new double[ensembleSize];
-    
+
     //----instantiate the MAs
     for (int i = 0; i < ensembleSize; i++) {
       BoostMAProcessor newProc = new BoostMAProcessor.Builder(dataset)
@@ -169,7 +173,6 @@ public class BoostVHTProcessor implements Processor {
           .parallelismHint(parallelismHint)
           .timeOut(timeOut)
           .processorID(i) // The BoostMA processors get incremental ids
-          .boostProcessor(this) // TODO(tvas): Should prolly not be passing this, create better encapsulation
           .build();
       newProc.setAttributeStream(this.attributeStream);
       newProc.setControlStream(this.controlStream);
@@ -283,15 +286,15 @@ public class BoostVHTProcessor implements Processor {
     }
 
     public Builder(BoostVHTProcessor oldProcessor) {
-      this.dataset = oldProcessor.dataset;
-      this.ensembleSize = oldProcessor.ensembleSize;
-      this.numberOfClasses = oldProcessor.numberOfClasses;
-      this.splitCriterion = oldProcessor.splitCriterion;
-      this.splitConfidence = oldProcessor.splitConfidence;
-      this.tieThreshold = oldProcessor.tieThreshold;
-      this.gracePeriod = oldProcessor.gracePeriod;
-      this.parallelismHint = oldProcessor.parallelismHint;
-      this.timeOut = oldProcessor.timeOut;
+      this.dataset = oldProcessor.getDataset();
+      this.ensembleSize = oldProcessor.getEnsembleSize();
+      this.numberOfClasses = oldProcessor.getNumberOfClasses();
+      this.splitCriterion = oldProcessor.getSplitCriterion();
+      this.splitConfidence = oldProcessor.getSplitConfidence();
+      this.tieThreshold = oldProcessor.getTieThreshold();
+      this.gracePeriod = oldProcessor.getGracePeriod();
+      this.parallelismHint = oldProcessor.getParallelismHint();
+      this.timeOut = oldProcessor.getTimeOut();
     }
 
     public Builder ensembleSize(int ensembleSize) {
@@ -415,6 +418,10 @@ public class BoostVHTProcessor implements Processor {
     this.numberOfClasses = numberOfClasses;
   }
   
+  public Instances getDataset() {
+    return dataset;
+  }
+
   @Override
   public Processor newProcessor(Processor sourceProcessor) {
     BoostVHTProcessor originProcessor = (BoostVHTProcessor) sourceProcessor;
