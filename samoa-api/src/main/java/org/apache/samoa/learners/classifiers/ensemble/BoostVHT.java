@@ -185,8 +185,6 @@ public class BoostVHT implements ClassificationLearner, Configurable {
     boostVHTProcessor.setResultStream(resultStream);
     boostVHTProcessor.setAttributeStream(attributeStream);
     boostVHTProcessor.setControlStream(controlStream);
-
-    logger.info("--------- Topology is set!!!");
   }
 
   /** The topologyBuilder. */

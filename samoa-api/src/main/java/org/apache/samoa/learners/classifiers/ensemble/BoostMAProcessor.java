@@ -25,10 +25,8 @@ import org.apache.samoa.core.Processor;
 import org.apache.samoa.instances.Instance;
 import org.apache.samoa.instances.Instances;
 import org.apache.samoa.instances.InstancesHeader;
-import org.apache.samoa.learners.InstanceContent;
 import org.apache.samoa.learners.InstanceContentEvent;
 import org.apache.samoa.learners.InstancesContentEvent;
-import org.apache.samoa.learners.ResultContentEvent;
 import org.apache.samoa.learners.classifiers.ModelAggregator;
 import org.apache.samoa.learners.classifiers.trees.ActiveLearningNode;
 import org.apache.samoa.learners.classifiers.trees.AttributeBatchContentEvent;
@@ -36,7 +34,6 @@ import org.apache.samoa.learners.classifiers.trees.FoundNode;
 import org.apache.samoa.learners.classifiers.trees.InactiveLearningNode;
 import org.apache.samoa.learners.classifiers.trees.LearningNode;
 import org.apache.samoa.learners.classifiers.trees.LocalResultContentEvent;
-import org.apache.samoa.learners.classifiers.trees.ModelAggregatorProcessor;
 import org.apache.samoa.learners.classifiers.trees.Node;
 import org.apache.samoa.learners.classifiers.trees.SplitNode;
 import org.apache.samoa.moa.classifiers.core.AttributeSplitSuggestion;
@@ -48,14 +45,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -114,7 +112,7 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
   private final int parallelismHint;
   private final long timeOut;
   
-  private long instancesSeenAtModelUpdate ;
+  private long instancesSeenAtModel;
  
   private File metrics;
   private String datapath = "/Users/fobeligi/Documents/GBDT/experiments-output/classification/classification";
@@ -154,7 +152,7 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
     this.timedOutSplittingNodes = new LinkedBlockingQueue<>();
     this.splitId = 0;
     
-    this.instancesSeenAtModelUpdate = 0;
+    this.instancesSeenAtModel = 0;
 
     // Executor for scheduling time-out threads
     this.executor = Executors.newScheduledThreadPool(8);
@@ -170,16 +168,15 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
       SplittingNodeInfo splittingNode = splittingNodes.get(timedOutSplitId);
       if (splittingNode != null) {
         this.splittingNodes.remove(timedOutSplitId);
-        this.continueAttemptToSplit(splittingNode.activeLearningNode, splittingNode.foundNode);
-
+        this.continueAttemptToSplit(splittingNode.activeLearningNode, splittingNode.foundNode, timedOutSplitId);
       }
-
     }
 
     // Receive a new instance from source
     if (event instanceof InstanceContentEvent) {
-      instancesSeenAtModelUpdate++;//
+      instancesSeenAtModel++;//
       
+      //This is added only for test purposes. It won't exist in the final code
       if (firstEvent) {
         try {
           metrics = new File(datapath+"_model_"+this.getProcessorId()+"_updates.csv");
@@ -194,8 +191,7 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
       
       InstanceContentEvent instanceEvent = (InstanceContentEvent) event;
       this.processInstanceContentEvent(instanceEvent);
-      // Send information to local-statistic PI
-      // for each of the nodes
+      // Send information to local-statistic PI for each of the nodes
       if (this.foundNodeSet != null) {
         for (FoundNode foundNode : this.foundNodeSet) {
           ActiveLearningNode leafNode = (ActiveLearningNode) foundNode.getNode();
@@ -221,6 +217,31 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
         }
       }
       this.foundNodeSet = null;
+      
+      if (instanceEvent.isLastEvent()) {
+        int treeNodes = activeLeafNodeCount + decisionNodeCount;
+        System.out.println("-----------Number of activeLeafNodeCount + splittingNodes = " +treeNodes);
+        
+        long nOfTreeNodes = getNumberofTreeNodes(this.treeRoot);
+        
+        System.out.println("-----------Number of TreeNodes = " +nOfTreeNodes);
+        if (treeNodes == nOfTreeNodes) {
+          System.out.println("---------------------SUCCESS!!!! the tree is NOT corrupted!!  " +
+                  "BoostMAProcessor ID = " + this.processorId +
+          ",   activeLeafNodeCount + splittingNodes = " +treeNodes +
+                  ",   Number of TreeNodes from DFS = " + nOfTreeNodes);
+        }else {
+          System.out.println("---------------------Failure!!!! the tree is corrupted!!  " +
+                  "BoostMAProcessor ID = " + this.processorId +
+                  ",   activeLeafNodeCount + splittingNodes = " +treeNodes +
+                  ",   Number of TreeNodes from DFS = " + nOfTreeNodes);
+        }
+//        if (nOfTreeNodes != activeLeafNodeCount + decisionNodeCount) {
+//          System.out.println("----------------------The tree is corrupted--------------------");
+//          System.exit(1);
+//        }
+      }
+      
     } else if (event instanceof LocalResultContentEvent) {
       LocalResultContentEvent lrce = (LocalResultContentEvent) event;
       Long lrceSplitId = lrce.getSplitId();
@@ -237,13 +258,61 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
         if (activeLearningNode.isAllSuggestionsCollected()) {
           splittingNodeInfo.scheduledFuture.cancel(false);
           this.splittingNodes.remove(lrceSplitId);
-          this.continueAttemptToSplit(activeLearningNode, splittingNodeInfo.foundNode);
+          this.continueAttemptToSplit(activeLearningNode, splittingNodeInfo.foundNode,lrceSplitId);
         }
       }
     }
     return false;
   }
-
+  
+  private Queue<Long> dfsPreOrderNodes = new LinkedList<Long>();
+//  private Stack<Long> visitedNodes = new Stack<Long>();
+  
+  private long getNumberofTreeNodes(Node startingNode) {
+    if (this.treeRoot == null) {
+      return 0;
+    }
+    
+    if (startingNode instanceof SplitNode ) {
+      SplitNode parentNode = (SplitNode) startingNode ;
+      
+      //if we are on the root
+      if (dfsPreOrderNodes.isEmpty()) {
+        dfsPreOrderNodes.add(parentNode.getId());
+      }
+      
+      for (int i = 0; i < parentNode.numChildren(); i++) {
+        Node child = parentNode.getChild(i);
+    
+        if (child instanceof SplitNode) {
+          Long childId = ((SplitNode) child).getId();
+          //check for circles which should not exist
+//          if (visitedNodes.search(childId) == -1) { // add to the stack only if it has not be visited before
+//            visitedNodes.push(childId);
+            dfsPreOrderNodes.add(childId);
+            getNumberofTreeNodes(child);
+//          }
+        } else if (child instanceof ActiveLearningNode) {
+          Long childId = ((ActiveLearningNode) child).getId();
+          //check for circles which should not exist
+//          if (visitedNodes.search(childId) == -1) { // add to the stack only if it has not be visited before
+//            visitedNodes.push(childId);
+            dfsPreOrderNodes.add(childId);
+//          }
+        }
+      }
+    } else if (startingNode instanceof ActiveLearningNode) {
+      Long leafId = ((ActiveLearningNode) startingNode).getId();
+      //check for circles which should not exist
+//      if (visitedNodes.search(leafId) == -1) { // add to the stack only if it has not be visited before
+//        visitedNodes.push(leafId);
+        dfsPreOrderNodes.add(leafId);
+//      }
+    }
+    
+    return dfsPreOrderNodes.size();
+  }
+  
   protected Set<FoundNode> foundNodeSet;
 
   @Override
@@ -485,7 +554,7 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
    * @param foundNode
    *          The data structure to represents the filtering of the instance using the tree model.
    */
-  private void continueAttemptToSplit(ActiveLearningNode activeLearningNode, FoundNode foundNode) {
+  private void continueAttemptToSplit(ActiveLearningNode activeLearningNode, FoundNode foundNode, Long lrceSplitId) {
     AttributeSplitSuggestion bestSuggestion = activeLearningNode.getDistributedBestSuggestion();
     AttributeSplitSuggestion secondBestSuggestion = activeLearningNode.getDistributedSecondBestSuggestion();
 
@@ -542,9 +611,8 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
           parent.setChild(parentBranch, newSplit);
         }
         //metrics = ("Instances seen,model id,splitId, active Leaf Nodes,decision Nodes")
-        String metricsData = instancesSeenAtModelUpdate + "," + this.processorId+"," + this.splitId +"," + this.activeLeafNodeCount + "," + this.decisionNodeCount;
+        String metricsData = instancesSeenAtModel + "," + this.processorId+"," + lrceSplitId +"," + this.activeLeafNodeCount + "," + this.decisionNodeCount;
         this.metadataStream.println(metricsData);
-        setInstancesSeenAtModelUpdate(0) ;
         //---
       }
       // TODO: add check on the model's memory size
@@ -801,7 +869,4 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
     return processorId;
   }
   
-  public void setInstancesSeenAtModelUpdate(long instancesSeenAtModelUpdate) {
-    this.instancesSeenAtModelUpdate = instancesSeenAtModelUpdate;
-  }
 }

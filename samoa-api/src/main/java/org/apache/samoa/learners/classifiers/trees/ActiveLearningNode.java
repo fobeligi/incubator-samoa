@@ -62,7 +62,7 @@ public final class ActiveLearningNode extends LearningNode {
     this.parallelismHint = parallelismHint;
   }
 
-  long getId() {
+  public long getId() {
     return id;
   }
 

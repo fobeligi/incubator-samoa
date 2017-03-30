@@ -101,6 +101,8 @@ public class BoostVHTProcessor implements Processor {
   //---for SAMME
   private int numberOfClasses;
   //---
+  
+  private long instancesSeen = 0;
 
   private BoostVHTProcessor(Builder builder) {
     this.dataset = builder.dataset;
@@ -220,16 +222,25 @@ public class BoostVHTProcessor implements Processor {
 
     this.trainingWeightSeenByModel += trainInstance.weight();
     double lambda_d = 1.0; //set the example's weight
+  
+    instancesSeen++;
     
     for (int i = 0; i < ensembleSize; i++) { //for each base model
       int k = MiscUtils.poisson(lambda_d, this.random); //set k according to poisson
-
+      
       if (k > 0) {
         Instance weightedInstance = trainInstance.copy();
         weightedInstance.setWeight(trainInstance.weight() * k);
         InstanceContentEvent instanceContentEvent = new InstanceContentEvent(inEvent.getInstanceIndex(), weightedInstance, true, false);
         instanceContentEvent.setClassifierIndex(i);
         instanceContentEvent.setEvaluationIndex(inEvent.getEvaluationIndex());
+        if (instancesSeen == 100000) {
+          instanceContentEvent.setLast(true);
+        }
+        mAPEnsemble[i].process(instanceContentEvent);
+      } else if (k <= 0 && instancesSeen ==100000) {
+        InstanceContentEvent instanceContentEvent = new InstanceContentEvent(inEvent.getInstanceIndex(), trainInstance, false, false);
+        instanceContentEvent.setLast(true);
         mAPEnsemble[i].process(instanceContentEvent);
       }
       //get prediction for the instance from the specific learner of the ensemble

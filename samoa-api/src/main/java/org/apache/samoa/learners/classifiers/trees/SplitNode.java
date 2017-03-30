@@ -38,12 +38,16 @@ public class SplitNode extends Node {
 
   private final AutoExpandVector<Node> children;
   protected final InstanceConditionalTest splitTest;
+  
+  private final long id;
 
   public SplitNode(InstanceConditionalTest splitTest,
       double[] classObservation) {
     super(classObservation);
     this.children = new AutoExpandVector<>();
     this.splitTest = splitTest;
+    
+    this.id = VerticalHoeffdingTree.LearningNodeIdGenerator.generate();
   }
 
   @Override
@@ -114,5 +118,9 @@ public class SplitNode extends Node {
    */
   int instanceChildIndex(Instance inst) {
     return this.splitTest.branchForInstance(inst);
+  }
+  
+  public long getId() {
+    return id;
   }
 }

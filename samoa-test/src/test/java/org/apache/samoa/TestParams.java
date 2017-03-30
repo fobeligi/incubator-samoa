@@ -52,7 +52,23 @@ public class TestParams {
     public final static String PREQCVEVAL_VHT_RANDOMTREE = "PrequentialCVEvaluation -d %s -i %d -f %d -w %d "
             + "-l (org.apache.samoa.learners.classifiers.trees.VerticalHoeffdingTree -p 4) " +
             "-s (org.apache.samoa.streams.generators.RandomTreeGenerator -c 2 -o 10 -u 10)";
-
+  
+    //-------- added for BoostVHT
+    public final static String PREQEVAL_BoostVHT_RANDOMTREE = "PrequentialEvaluation -d %s -i %d -f %d -w %d "
+            + "-l (classifiers.ensemble.BoostVHT -s 10) " +
+            "-s (org.apache.samoa.streams.generators.RandomTreeGenerator -c 2 -o 10 -u 10)";
+  
+    // setting the number of nominal attributes to zero significantly reduces
+    // the processing time,
+    // so that it's acceptable in a test case
+    public final static String PREQEVAL_BoostVHT_RANDOMTREE_NoNominalAttrs = "PrequentialEvaluation -d %s -i %d -f %d -w %d "
+            + "-l (classifiers.ensemble.BoostVHT -s 10) " +
+            "-s (org.apache.samoa.streams.generators.RandomTreeGenerator -c 2 -o 0 -u 10)";
+  
+    public final static String PREQCVEVAL_BoostVHT_RANDOMTREE = "PrequentialCVEvaluation -d %s -i %d -f %d -w %d "
+            + "-l (classifiers.ensemble.BoostVHT -s 10) " +
+            "-s (org.apache.samoa.streams.generators.RandomTreeGenerator -c 2 -o 10 -u 10)";
+    //--------
   }
 
   public static final String EVALUATION_INSTANCES = "evaluation instances";
