@@ -115,7 +115,7 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
   private long instancesSeenAtModel;
  
   private File metrics;
-  private String datapath = "/Users/fobeligi/Documents/GBDT/experiments-output/classification/classification";
+  private String datapath = "/Users/fobeligi/Documents/GBDT/classification";
   private PrintStream metadataStream = null;
   private boolean firstEvent = true;
   
@@ -265,52 +265,38 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
     return false;
   }
   
-  private Queue<Long> dfsPreOrderNodes = new LinkedList<Long>();
-//  private Stack<Long> visitedNodes = new Stack<Long>();
+
   
   private long getNumberofTreeNodes(Node startingNode) {
-    if (this.treeRoot == null) {
-      return 0;
+    
+    Stack<Node> dfsPreOrderNodes = new Stack<>();
+    
+    Long numberOfNodes = Long.valueOf(0);
+    
+    //check that there is at least the root in the tree
+    if (startingNode == null) {
+      return numberOfNodes;
+    } else{
+      dfsPreOrderNodes.push(startingNode);
     }
     
-    if (startingNode instanceof SplitNode ) {
-      SplitNode parentNode = (SplitNode) startingNode ;
+    //while the stack is not empty
+    while(!dfsPreOrderNodes.isEmpty()) {
+      Node node = dfsPreOrderNodes.pop();
+      numberOfNodes++;  //visit(node)  //count the number of visited nodes
       
-      //if we are on the root
-      if (dfsPreOrderNodes.isEmpty()) {
-        dfsPreOrderNodes.add(parentNode.getId());
-      }
-      
-      for (int i = 0; i < parentNode.numChildren(); i++) {
-        Node child = parentNode.getChild(i);
-    
-        if (child instanceof SplitNode) {
-          Long childId = ((SplitNode) child).getId();
-          //check for circles which should not exist
-//          if (visitedNodes.search(childId) == -1) { // add to the stack only if it has not be visited before
-//            visitedNodes.push(childId);
-            dfsPreOrderNodes.add(childId);
-            getNumberofTreeNodes(child);
-//          }
-        } else if (child instanceof ActiveLearningNode) {
-          Long childId = ((ActiveLearningNode) child).getId();
-          //check for circles which should not exist
-//          if (visitedNodes.search(childId) == -1) { // add to the stack only if it has not be visited before
-//            visitedNodes.push(childId);
-            dfsPreOrderNodes.add(childId);
-//          }
+      //DecisionNodes (nodes with children) are of type SplitNode
+      if (node instanceof SplitNode ) {
+        SplitNode parentNode = (SplitNode) node;
+        
+        //add the children in the stack, so as to visit them. Add the children from last(index n) to first (index 0)
+        for (int i = parentNode.numChildren() - 1; i >= 0; i--) {
+          Node child = parentNode.getChild(i);
+          dfsPreOrderNodes.push(child);
         }
       }
-    } else if (startingNode instanceof ActiveLearningNode) {
-      Long leafId = ((ActiveLearningNode) startingNode).getId();
-      //check for circles which should not exist
-//      if (visitedNodes.search(leafId) == -1) { // add to the stack only if it has not be visited before
-//        visitedNodes.push(leafId);
-        dfsPreOrderNodes.add(leafId);
-//      }
     }
-    
-    return dfsPreOrderNodes.size();
+    return numberOfNodes;
   }
   
   protected Set<FoundNode> foundNodeSet;
