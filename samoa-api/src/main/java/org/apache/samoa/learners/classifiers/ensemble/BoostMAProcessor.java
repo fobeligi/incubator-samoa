@@ -62,6 +62,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.apache.samoa.moa.core.Utils.maxIndex;
 
@@ -270,12 +271,12 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
   private long getNumberofTreeNodes(Node startingNode) {
     
     Stack<Node> dfsPreOrderNodes = new Stack<>();
-    
-    Long numberOfNodes = Long.valueOf(0);
+  
+    final AtomicLong numberOfNodes = new AtomicLong();
     
     //check that there is at least the root in the tree
     if (startingNode == null) {
-      return numberOfNodes;
+      return numberOfNodes.get();
     } else{
       dfsPreOrderNodes.push(startingNode);
     }
@@ -283,7 +284,7 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
     //while the stack is not empty
     while(!dfsPreOrderNodes.isEmpty()) {
       Node node = dfsPreOrderNodes.pop();
-      numberOfNodes++;  //visit(node)  //count the number of visited nodes
+      numberOfNodes.getAndIncrement();  //visit(node)  //count the number of visited nodes
       
       //DecisionNodes (nodes with children) are of type SplitNode
       if (node instanceof SplitNode ) {
@@ -296,7 +297,7 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
         }
       }
     }
-    return numberOfNodes;
+    return numberOfNodes.get();
   }
   
   protected Set<FoundNode> foundNodeSet;
