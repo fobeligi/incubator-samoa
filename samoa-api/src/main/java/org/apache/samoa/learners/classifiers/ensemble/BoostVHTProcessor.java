@@ -231,6 +231,7 @@ public class BoostVHTProcessor implements Processor {
       if (k > 0) {
         Instance weightedInstance = trainInstance.copy();
         weightedInstance.setWeight(trainInstance.weight() * k);
+        // Instantiates a new instance event (index, Instance instance, boolean isTraining, boolean isTesting)
         InstanceContentEvent instanceContentEvent = new InstanceContentEvent(inEvent.getInstanceIndex(), weightedInstance, true, false);
         instanceContentEvent.setClassifierIndex(i);
         instanceContentEvent.setEvaluationIndex(inEvent.getEvaluationIndex());
@@ -239,6 +240,7 @@ public class BoostVHTProcessor implements Processor {
         }
         mAPEnsemble[i].process(instanceContentEvent);
       } else if (k <= 0 && instancesSeen ==100000) {
+        // Instantiates a new instance event (index, Instance instance, boolean isTraining, boolean isTesting)
         InstanceContentEvent instanceContentEvent = new InstanceContentEvent(inEvent.getInstanceIndex(), trainInstance, false, false);
         instanceContentEvent.setLast(true);
         mAPEnsemble[i].process(instanceContentEvent);
