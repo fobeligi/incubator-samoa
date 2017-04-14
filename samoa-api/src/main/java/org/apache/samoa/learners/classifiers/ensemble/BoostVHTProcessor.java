@@ -94,7 +94,7 @@ public class BoostVHTProcessor implements Processor {
   protected double trainingWeightSeenByModel; //todo:: (Faye) when is this updated?
   //-----
 
-  
+
   //---for SAMME
   private int numberOfClasses;
   //---
@@ -124,7 +124,7 @@ public class BoostVHTProcessor implements Processor {
       InstanceContentEvent inEvent = (InstanceContentEvent) event;
       //todo:: (Faye) check if any precondition is needed
 //    if (inEvent.getInstanceIndex() < 0) {
-//      end learning
+////      end learning
 //      for (Stream stream : ensembleStreams)
 //        stream.put(event);
 //      return false;
@@ -144,7 +144,7 @@ public class BoostVHTProcessor implements Processor {
       for (int i = 0; i < ensembleSize; i++) {
         if (lrce.getEnsembleId() == mAPEnsemble[i].getProcessorId()){
 //          nOfMsgPerEnseble[i]++;
-//          System.out.println("-.-.-.-ensemble: " + i+ ",-.- nOfMsgPerEnseble: " + nOfMsgPerEnseble[i]);
+//          logger.info("-.-.-.-ensemble: " + i+ ",-.- nOfMsgPerEnseble: " + nOfMsgPerEnseble[i]);
           mAPEnsemble[i].process(lrce);
         }
       }
@@ -178,7 +178,6 @@ public class BoostVHTProcessor implements Processor {
       newProc.setControlStream(this.controlStream);
       mAPEnsemble[i] = newProc;
     }
-    
   }
   
   // todo:: (Faye) use also the boosting algo and the training weight for each model to compute the final result and put it to the resultStream
@@ -271,7 +270,7 @@ public class BoostVHTProcessor implements Processor {
     // BoostVHT processor parameters
     private final Instances dataset;
     private int ensembleSize = 10;
-    private int numberOfClasses;
+    private int numberOfClasses = 2;
 
     // BoostMAProcessor parameters
     private SplitCriterion splitCriterion = new InfoGainSplitCriterion();
@@ -279,7 +278,7 @@ public class BoostVHTProcessor implements Processor {
     private double tieThreshold = 0.05;
     private int gracePeriod = 200;
     private int parallelismHint = 1;
-    private int timeOut = 30;
+    private int timeOut = Integer.MAX_VALUE;
 
     public Builder(Instances dataset) {
       this.dataset = dataset;
@@ -421,7 +420,7 @@ public class BoostVHTProcessor implements Processor {
   public Instances getDataset() {
     return dataset;
   }
-
+  
   @Override
   public Processor newProcessor(Processor sourceProcessor) {
     BoostVHTProcessor originProcessor = (BoostVHTProcessor) sourceProcessor;
