@@ -285,6 +285,7 @@ public class BoostVHTProcessor implements Processor {
     private int parallelismHint = 1;
     private int timeOut = Integer.MAX_VALUE;
     private ActiveLearningNode.SplittingOption splittingOption;
+    private int maxBufferSize = 1000;
 
     public Builder(Instances dataset) {
       this.dataset = dataset;
@@ -345,6 +346,11 @@ public class BoostVHTProcessor implements Processor {
 
     public Builder splittingOption(ActiveLearningNode.SplittingOption splittingOption) {
       this.splittingOption = splittingOption;
+      return this;
+    }
+
+    public Builder maxBufferSize(int maxBufferSize) {
+      this.maxBufferSize= maxBufferSize;
       return this;
     }
 
