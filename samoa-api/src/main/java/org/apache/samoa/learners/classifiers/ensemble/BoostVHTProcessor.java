@@ -93,14 +93,12 @@ public class BoostVHTProcessor implements Processor {
 
   // e_m
   private double[] e_m;
-  
-  protected double trainingWeightSeenByModel; //todo:: (Faye) when is this updated?
-  //-----
 
+  private double trainingWeightSeenByModel; //todo:: (Faye) when is this updated?
 
-  //---for SAMME
   private int numberOfClasses;
-  //---
+
+  private int maxBufferSize;
 
   private BoostVHTProcessor(Builder builder) {
     this.dataset = builder.dataset;
@@ -114,6 +112,7 @@ public class BoostVHTProcessor implements Processor {
     this.parallelismHint = builder.parallelismHint;
     this.timeOut = builder.timeOut;
     this.splittingOption = builder.splittingOption;
+    this.maxBufferSize = builder.maxBufferSize;
   }
 
   /**
@@ -127,12 +126,6 @@ public class BoostVHTProcessor implements Processor {
     if (event instanceof InstanceContentEvent) {
       InstanceContentEvent inEvent = (InstanceContentEvent) event;
       //todo:: (Faye) check if any precondition is needed
-//    if (inEvent.getInstanceIndex() < 0) {
-////      end learning
-//      for (Stream stream : ensembleStreams)
-//        stream.put(event);
-//      return false;
-//    }
 
       if (inEvent.isTesting()) {
         double[] combinedPrediction = computeBoosting(inEvent);
@@ -147,8 +140,6 @@ public class BoostVHTProcessor implements Processor {
       LocalResultContentEvent lrce = (LocalResultContentEvent) event;
       for (int i = 0; i < ensembleSize; i++) {
         if (lrce.getEnsembleId() == mAPEnsemble[i].getProcessorId()){
-//          nOfMsgPerEnseble[i]++;
-//          logger.info("-.-.-.-ensemble: " + i+ ",-.- nOfMsgPerEnseble: " + nOfMsgPerEnseble[i]);
           mAPEnsemble[i].process(lrce);
         }
       }
@@ -177,6 +168,7 @@ public class BoostVHTProcessor implements Processor {
           .parallelismHint(parallelismHint)
           .timeOut(timeOut)
           .processorID(i) // The BoostMA processors get incremental ids
+          .maxBufferSize(maxBufferSize)
           .splittingOption(splittingOption)
           .build();
       newProc.setAttributeStream(this.attributeStream);
