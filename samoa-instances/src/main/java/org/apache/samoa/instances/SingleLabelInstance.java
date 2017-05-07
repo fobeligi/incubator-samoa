@@ -252,7 +252,7 @@ public class SingleLabelInstance implements Instance {
         text.append(",");
       text.append(this.value(i));
     }
-    text.append(",").append(this.weight());
+//    text.append(",").append(this.weight());
 
     return text.toString();
   }

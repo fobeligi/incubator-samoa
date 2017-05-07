@@ -90,11 +90,13 @@ public class StormSamoaUtils {
   
     //------- faye
     try {
-      String datapath = "/Users/fobeligi/Documents/GBDT/experiments-output-310317/forestCoverType/";
+      String datapath = "/lhome/fobeligi/GBDT/experiments-output/STORM-old-not-optimized-buffer/commands/";
       File metrics = new File(datapath+dataSet+"_commands.csv");
-      PrintStream metadataStream = new PrintStream(new FileOutputStream(metrics), true);
+      PrintStream metadataStream = new PrintStream(new FileOutputStream(metrics,true), true);
       metadataStream.println("command,dataset,framework" );
       metadataStream.println(command + ","+ dataSet+ ",STORM");
+      metadataStream.println("#COMPLETED");
+      metadataStream.flush();
     } catch (Exception e) {
       e.printStackTrace();
     }

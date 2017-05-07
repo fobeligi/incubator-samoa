@@ -67,7 +67,7 @@ public class DenseInstance extends SingleLabelInstance {
       }
       text.append(this.value(i));
     }
-    text.append(",").append(this.weight());
+//    text.append(",").append(this.weight());
 
     return text.toString();
   }

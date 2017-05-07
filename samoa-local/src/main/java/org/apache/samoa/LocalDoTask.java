@@ -92,12 +92,14 @@ public class LocalDoTask {
     command = cliString.toString();
     System.out.println("Command line string = " + cliString.toString());
     try {
-      String datapath = "/Users/fobeligi/Documents/GBDT/experiments-output-310317/forestCoverType/";
+      String datapath = "/lhome/fobeligi/GBDT/experiments-output/LOCAL-all-not-opt/commands/";
       File metrics = new File(datapath+dataSet+"_commands.csv");
       metadataStream = new PrintStream(
-              new FileOutputStream(metrics), true);
-      metadataStream.println("Command,dataset,framework,Experiment duration" + command);
-      metadataStream.print(command + ","+ dataSet+ ",LOCAL");
+              new FileOutputStream(metrics,true), true);
+      metadataStream.println("Command,dataset,framework");
+      metadataStream.println(command + ","+ dataSet+ ",LOCAL");
+      metadataStream.println("#COMPLETED");
+      metadataStream.flush();
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     }

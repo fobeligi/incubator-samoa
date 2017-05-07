@@ -21,6 +21,7 @@ package org.apache.samoa.tasks;
  */
 
 import com.github.javacliparser.*;
+import org.apache.samoa.instances.Instance;
 import org.apache.samoa.moa.options.AbstractOptionHandler;
 import org.apache.samoa.streams.InstanceStream;
 import org.apache.samoa.streams.clustering.RandomRBFGeneratorEvents;
@@ -36,6 +37,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.Writer;
+import java.util.Arrays;
 
 /**
  * A task that runs and evaluates a distributed clustering algorithm.

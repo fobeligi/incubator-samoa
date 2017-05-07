@@ -47,4 +47,25 @@ public class SparseInstance extends SingleLabelInstance {
     super(weight, attributeValues, indexValues, numberAttributes);
   }
 
+  @Override
+  public String toString() {
+//    String tmp = super.toString();
+
+    StringBuffer text = new StringBuffer();
+
+    for (int i = 0; i < this.instanceData.numAttributes(); i++) {
+
+      if (this.value(i) > 0.0){
+        text.append(i + " " +this.value(i));
+        text.append(",");
+      }
+    }
+    text.setLength(text.length()-1);
+//    text.append(",").append(this.weight());
+
+
+//    System.out.println("\n"+tmp+ "\n -- \n"+text.toString());
+    return text.toString();
+  }
+
 }
