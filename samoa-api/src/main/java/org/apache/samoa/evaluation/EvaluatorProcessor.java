@@ -24,8 +24,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
@@ -52,26 +50,22 @@ public class EvaluatorProcessor implements Processor {
 
   private static final String ORDERING_MEASUREMENT_NAME = "evaluation instances";
 
+  private static final String DURATION_NANO_TIME = "duration(nanoseconds)";
+  private static final String DURATION_SEC_TIME = "duration (seconds)";
+
+
   private final PerformanceEvaluator evaluator;
   private final int samplingFrequency;
   private final File dumpFile;
-  private PrintStream immediateResultStream = null;
-  private PrintStream metadataStream = null;//
-  private boolean firstDump = true;
+  private transient PrintStream immediateResultStream = null;
+  private transient boolean firstDump = true;
 
   private long totalCount = 0;
   private long experimentStart = 0;
 
+  private long sampleDuration = 0;
+  private long sampleDurationInNanoseconds = 0;
 
-  
-  long sampleDuration = 0;
-  private  File metrics;
-  long sampleDurationInNanoseconds = 0;
-  long sampleEndCPUTime = 0;
-//  long sampleCPUTime =0;
-//  long startCPUTime = 0;
-//  ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-  
   private long sampleStart = 0;
 
   private LearningCurve learningCurve;
@@ -93,6 +87,7 @@ public class EvaluatorProcessor implements Processor {
       sampleDuration = TimeUnit.SECONDS.convert(sampleEnd - sampleStart, TimeUnit.NANOSECONDS);
       sampleDurationInNanoseconds = sampleEnd - sampleStart;
       sampleStart = sampleEnd;
+
       logger.info("{} seconds for {} instances", sampleDuration, samplingFrequency);
       this.addMeasurement();
     }
@@ -107,6 +102,7 @@ public class EvaluatorProcessor implements Processor {
 
     if (totalCount == 1) {
       sampleStart = System.nanoTime();
+      experimentStart = sampleStart;
     }
 
     return false;
@@ -116,16 +112,7 @@ public class EvaluatorProcessor implements Processor {
   public void onCreate(int id) {
     this.id = id;
     this.learningCurve = new LearningCurve(ORDERING_MEASUREMENT_NAME);
-  
-    try {
-      String datafile = "/Users/fobeligi/Documents/GBDT/experiments-output-310317/forestCoverType/forestCoverType";
-      metrics = new File(datafile+"_evaluatorMetrics.csv");
-      this.metadataStream = new PrintStream(
-                new FileOutputStream(metrics), true);
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-  
+
     if (this.dumpFile != null) {
       try {
         if (dumpFile.exists()) {
@@ -182,6 +169,9 @@ public class EvaluatorProcessor implements Processor {
 
     Collections.addAll(measurements, evaluator.getPerformanceMeasurements());
 
+    measurements.add(new Measurement(DURATION_NANO_TIME,sampleDurationInNanoseconds));
+    measurements.add(new Measurement(DURATION_SEC_TIME,sampleDuration));
+
     Measurement[] finalMeasurements = measurements.toArray(new Measurement[measurements.size()]);
 
     LearningEvaluation learningEvaluation = new LearningEvaluation(finalMeasurements);
@@ -192,14 +182,11 @@ public class EvaluatorProcessor implements Processor {
     if (immediateResultStream != null) {
       if (firstDump) {
         immediateResultStream.println(learningCurve.headerToString());
-        metadataStream.println("#Instances classified, Experiment's Wall clock ");
         firstDump = false;
       }
 
       immediateResultStream.println(learningCurve.entryToString(learningCurve.numEntries() - 1));
       immediateResultStream.flush();
-  
-      metadataStream.println(totalCount + "," +sampleDurationInNanoseconds );
     }
   }
 
@@ -216,10 +203,12 @@ public class EvaluatorProcessor implements Processor {
 
     if (immediateResultStream != null) {
       immediateResultStream.println("# COMPLETED");
+      immediateResultStream.println("average_throughput_rate_(instances/sec):"+((double)totalCount/totalExperimentTime));
+      immediateResultStream.println("total_evaluation_time(second):"+totalExperimentTime);
       immediateResultStream.flush();
     }
-     logger.info("average throughput rate: {} instances/seconds",
-     (totalCount/totalExperimentTime));
+//     logger.info("average throughput rate: {} instances/seconds",
+//     (totalCount/totalExperimentTime));
   }
 
   public static class Builder {

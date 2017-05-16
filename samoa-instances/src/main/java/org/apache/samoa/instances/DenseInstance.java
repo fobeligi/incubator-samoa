@@ -24,6 +24,8 @@ package org.apache.samoa.instances;
  * #L%
  */
 
+import java.text.SimpleDateFormat;
+
 /**
  * @author abifet
  */
@@ -59,16 +61,28 @@ public class DenseInstance extends SingleLabelInstance {
 
   @Override
   public String toString() {
-    StringBuffer text = new StringBuffer();
+    StringBuffer str = new StringBuffer();
 
-    for (int i = 0; i < this.instanceData.numAttributes(); i++) {
-      if (i > 0) {
-        text.append(",");
+    //append all attributes except the class attribute.
+    for (int attIndex = 0; attIndex < this.numAttributes()-1; attIndex++) {
+      if (!this.isMissing(attIndex)) {
+        if (this.attribute(attIndex).isNominal()) {
+          int valueIndex = (int) this.value(attIndex);
+          String stringValue = this.attribute(attIndex).value(valueIndex);
+          str.append(stringValue).append(",");
+        } else if (this.attribute(attIndex).isNumeric()) {
+          str.append(this.value(attIndex)).append(",");
+        } else if (this.attribute(attIndex).isDate()) {
+          SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+          str.append(dateFormatter.format(this.value(attIndex))).append(",");
+        }
+      } else {
+        str.append("?,");
       }
-      text.append(this.value(i));
     }
-    text.append(",").append(this.weight());
+    //append the class value at the end of the instance.
+    str.append(this.classAttribute().value((int)classValue()));
 
-    return text.toString();
+    return str.toString();
   }
 }
