@@ -35,9 +35,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The Class DoTask.
@@ -56,9 +53,8 @@ public class LocalDoTask {
 
   public static String command = "";
   public static String dataSet = "";
-  private static transient File metrics;
   private static transient PrintStream metadataStream = null;
-//
+
   /**
    * The main method.
    * 
@@ -66,10 +62,6 @@ public class LocalDoTask {
    *          the arguments
    */
   public static void main(String[] args) {
-
-    // ArrayList<String> tmpArgs = new ArrayList<String>(Arrays.asList(args));
-
-    // args = tmpArgs.toArray(new String[0]);
 
     FlagOption suppressStatusOutOpt = new FlagOption("suppressStatusOut", 'S', SUPPRESS_STATUS_OUT_MSG);
 
@@ -92,17 +84,19 @@ public class LocalDoTask {
     command = cliString.toString();
     System.out.println("Command line string = " + cliString.toString());
     try {
-      String datapath = "/Users/fobeligi/Documents/GBDT/experiments-output-310317/forestCoverType/";
+      String datapath = "/lhome/fobeligi/GBDT/experiments-output/LOCAL-optimized-final/commands/";
       File metrics = new File(datapath+dataSet+"_commands.csv");
       metadataStream = new PrintStream(
-              new FileOutputStream(metrics), true);
-      metadataStream.println("Command,dataset,framework,Experiment duration" + command);
-      metadataStream.print(command + ","+ dataSet+ ",LOCAL");
+              new FileOutputStream(metrics,true), true);
+      metadataStream.println("Command,dataset,framework");
+      metadataStream.println(command + ","+ dataSet+ ",LOCAL");
+      metadataStream.println("#COMPLETED");
+      metadataStream.flush();
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     }
-    
-    
+
+
     Task task;
     try {
       task = ClassOption.cliStringToObject(cliString.toString(), Task.class, extraOptions);
@@ -113,7 +107,6 @@ public class LocalDoTask {
       return;
     }
     task.setFactory(new SimpleComponentFactory());
-    
     task.init();
     SimpleEngine.submitTopology(task.getTopology());
   }
