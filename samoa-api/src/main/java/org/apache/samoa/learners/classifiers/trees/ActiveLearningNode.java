@@ -26,8 +26,6 @@ import com.google.common.collect.EvictingQueue;
 import org.apache.samoa.instances.Attribute;
 import org.apache.samoa.learners.classifiers.ModelAggregator;
 import org.apache.samoa.instances.Instance;
-import org.apache.samoa.learners.classifiers.ensemble.AttributeSliceEvent;
-import org.apache.samoa.learners.classifiers.ensemble.BoostMAProcessor;
 import org.apache.samoa.moa.classifiers.core.AttributeSplitSuggestion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

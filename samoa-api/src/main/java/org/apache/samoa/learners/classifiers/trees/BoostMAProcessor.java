@@ -1,4 +1,4 @@
-package org.apache.samoa.learners.classifiers.ensemble;
+package org.apache.samoa.learners.classifiers.trees;
 
 /*
  * #%L
@@ -25,17 +25,8 @@ import org.apache.samoa.core.Processor;
 import org.apache.samoa.instances.Instance;
 import org.apache.samoa.instances.Instances;
 import org.apache.samoa.instances.InstancesHeader;
-import org.apache.samoa.learners.InstanceContentEvent;
 import org.apache.samoa.learners.classifiers.ModelAggregator;
-import org.apache.samoa.learners.classifiers.trees.ActiveLearningNode;
 import org.apache.samoa.learners.classifiers.trees.ActiveLearningNode.SplittingOption;
-import org.apache.samoa.learners.classifiers.trees.AttributeBatchContentEvent;
-import org.apache.samoa.learners.classifiers.trees.FoundNode;
-import org.apache.samoa.learners.classifiers.trees.InactiveLearningNode;
-import org.apache.samoa.learners.classifiers.trees.LearningNode;
-import org.apache.samoa.learners.classifiers.trees.LocalResultContentEvent;
-import org.apache.samoa.learners.classifiers.trees.Node;
-import org.apache.samoa.learners.classifiers.trees.SplitNode;
 import org.apache.samoa.moa.classifiers.core.AttributeSplitSuggestion;
 import org.apache.samoa.moa.classifiers.core.splitcriteria.InfoGainSplitCriterion;
 import org.apache.samoa.moa.classifiers.core.splitcriteria.SplitCriterion;
@@ -52,10 +43,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import static org.apache.samoa.moa.core.Utils.maxIndex;
 
@@ -104,16 +92,6 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
   private final int gracePeriod;
   private final int parallelismHint;
   private final long timeOut;
-  
-  private long instancesSeenAtModelUpdate ;
- 
-  private File metrics;
-  private String datapath = "/home/tvas/output/covtype";
-  private PrintStream metadataStream = null;
-  private boolean firstEvent = true;
-  
-  
-  private double weightSeenByModel = 0.0;
   
   //the "parent" processor that boosting takes place. We need it for the streams
 //  private final BoostVHTProcessor boostProc;
@@ -246,7 +224,6 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
     this.controlStream = controlStream;
   }
 
-  //todo:: is there any reason to synchronize these two methods?
   @Override
   public void sendToAttributeStream(ContentEvent event) {
     this.attributeStream.put(event);
@@ -258,7 +235,7 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
   }
 
 
-  protected boolean correctlyClassifies(Instance inst, double[] prediction) {
+  public boolean correctlyClassifies(Instance inst, double[] prediction) {
     return maxIndex(prediction) == (int) inst.classValue();
   }
 
@@ -654,10 +631,6 @@ public final class BoostMAProcessor implements ModelAggregator, Processor {
   
   public long getTimeOut() {
     return timeOut;
-  }
-
-  public double getWeightSeenByModel() {
-    return weightSeenByModel;
   }
   
   public int getProcessorId() {

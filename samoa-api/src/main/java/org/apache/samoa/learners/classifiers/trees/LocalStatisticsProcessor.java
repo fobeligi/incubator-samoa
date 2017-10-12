@@ -26,7 +26,6 @@ import java.util.Map.Entry;
 
 import org.apache.samoa.core.ContentEvent;
 import org.apache.samoa.core.Processor;
-import org.apache.samoa.learners.classifiers.ensemble.AttributeSliceEvent;
 import org.apache.samoa.moa.classifiers.core.AttributeSplitSuggestion;
 import org.apache.samoa.moa.classifiers.core.attributeclassobservers.AttributeClassObserver;
 import org.apache.samoa.moa.classifiers.core.attributeclassobservers.GaussianNumericAttributeClassObserver;

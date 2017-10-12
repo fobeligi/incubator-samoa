@@ -27,6 +27,7 @@ import org.apache.samoa.instances.Instances;
 import org.apache.samoa.learners.InstanceContentEvent;
 import org.apache.samoa.learners.ResultContentEvent;
 import org.apache.samoa.learners.classifiers.trees.ActiveLearningNode;
+import org.apache.samoa.learners.classifiers.trees.BoostMAProcessor;
 import org.apache.samoa.learners.classifiers.trees.LocalResultContentEvent;
 import org.apache.samoa.moa.classifiers.core.splitcriteria.InfoGainSplitCriterion;
 import org.apache.samoa.moa.classifiers.core.splitcriteria.SplitCriterion;
@@ -37,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * The Class BoostVHTProcessor.
