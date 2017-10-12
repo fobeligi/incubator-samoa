@@ -37,7 +37,6 @@ public final class LocalResultContentEvent implements ContentEvent {
   private final AttributeSplitSuggestion bestSuggestion;
   private final AttributeSplitSuggestion secondBestSuggestion;
   private final long splitId;
-  
   private int ensembleId; //the id of the ensemble that asked for the local statistics
 
   public LocalResultContentEvent() {
@@ -62,7 +61,7 @@ public final class LocalResultContentEvent implements ContentEvent {
    * 
    * @return The best attribute split suggestion.
    */
-  public AttributeSplitSuggestion getBestSuggestion() {
+  AttributeSplitSuggestion getBestSuggestion() {
     return this.bestSuggestion;
   }
 
@@ -71,7 +70,7 @@ public final class LocalResultContentEvent implements ContentEvent {
    * 
    * @return The second best attribute split suggestion.
    */
-  public AttributeSplitSuggestion getSecondBestSuggestion() {
+  AttributeSplitSuggestion getSecondBestSuggestion() {
     return this.secondBestSuggestion;
   }
 
@@ -80,7 +79,7 @@ public final class LocalResultContentEvent implements ContentEvent {
    * 
    * @return The split id of this local calculation result
    */
-  public long getSplitId() {
+  long getSplitId() {
     return this.splitId;
   }
 

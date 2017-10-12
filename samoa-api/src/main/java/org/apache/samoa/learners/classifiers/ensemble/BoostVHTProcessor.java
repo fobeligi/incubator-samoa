@@ -90,11 +90,8 @@ public class BoostVHTProcessor implements Processor {
   //-----
   // lambda_m correct
   protected double[] scms;
-  
   // lambda_m wrong
   protected double[] swms;
-
-  // e_m
   private double[] e_m;
 
   private double trainingWeightSeenByModel; //todo:: (Faye) when is this updated?
