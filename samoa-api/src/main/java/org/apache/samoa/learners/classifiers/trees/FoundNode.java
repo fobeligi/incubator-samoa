@@ -27,7 +27,7 @@ package org.apache.samoa.learners.classifiers.trees;
  * @author Arinto Murdopo
  * 
  */
-public final class FoundNode implements java.io.Serializable {
+final class FoundNode implements java.io.Serializable {
 
   /**
 	 * 
@@ -38,7 +38,7 @@ public final class FoundNode implements java.io.Serializable {
   private final SplitNode parent;
   private final int parentBranch;
 
-  public FoundNode(Node node, SplitNode splitNode, int parentBranch) {
+  FoundNode(Node node, SplitNode splitNode, int parentBranch) {
     this.node = node;
     this.parent = splitNode;
     this.parentBranch = parentBranch;
@@ -50,7 +50,7 @@ public final class FoundNode implements java.io.Serializable {
    * 
    * @return The node where the instance is routed/filtered
    */
-  public Node getNode() {
+  Node getNode() {
     return this.node;
   }
 
@@ -60,7 +60,7 @@ public final class FoundNode implements java.io.Serializable {
    * 
    * @return The parent of the node
    */
-  public SplitNode getParent() {
+  SplitNode getParent() {
     return this.parent;
   }
 
@@ -70,7 +70,7 @@ public final class FoundNode implements java.io.Serializable {
    * 
    * @return The index of the node in its parent node.
    */
-  public int getParentBranch() {
+  int getParentBranch() {
     return this.parentBranch;
   }
 

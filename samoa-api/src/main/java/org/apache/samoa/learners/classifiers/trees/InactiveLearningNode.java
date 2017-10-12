@@ -30,14 +30,14 @@ import org.apache.samoa.learners.classifiers.ModelAggregator;
  * @author Arinto Murdopo
  * 
  */
-public final class InactiveLearningNode extends LearningNode {
+final class InactiveLearningNode extends LearningNode {
 
   /**
 	 * 
 	 */
   private static final long serialVersionUID = -814552382883472302L;
 
-  public InactiveLearningNode(double[] initialClassObservation) {
+  InactiveLearningNode(double[] initialClassObservation) {
     super(initialClassObservation);
   }
 

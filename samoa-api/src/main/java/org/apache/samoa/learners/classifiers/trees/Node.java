@@ -30,7 +30,7 @@ import org.apache.samoa.learners.classifiers.ModelAggregator;
  * @author Arinto Murdopo
  * 
  */
-public abstract class Node implements java.io.Serializable {
+abstract class Node implements java.io.Serializable {
 
   private static final long serialVersionUID = 4008521239214180548L;
 
@@ -47,7 +47,7 @@ public abstract class Node implements java.io.Serializable {
    *          The index of the current node in the parent
    * @return FoundNode which is the data structure to represent the resulting leaf.
    */
-  public abstract FoundNode filterInstanceToLeaf(Instance inst, SplitNode parent, int parentBranch);
+  abstract FoundNode filterInstanceToLeaf(Instance inst, SplitNode parent, int parentBranch);
 
   /**
    * Method to return the predicted class of the instance based on the statistic inside the node.
@@ -58,7 +58,7 @@ public abstract class Node implements java.io.Serializable {
    *          ModelAggregatorProcessor
    * @return The prediction result in the form of class distribution
    */
-  public abstract double[] getClassVotes(Instance inst, ModelAggregator map);
+  abstract double[] getClassVotes(Instance inst, ModelAggregator map);
 
   /**
    * Method to check whether the node is a leaf node or not.
@@ -73,7 +73,7 @@ public abstract class Node implements java.io.Serializable {
    * @param classObservation
    *          distribution of the observed classes.
    */
-  public Node(double[] classObservation) {
+  protected Node(double[] classObservation) {
     this.observedClassDistribution = new DoubleVector(classObservation);
   }
 
@@ -82,8 +82,7 @@ public abstract class Node implements java.io.Serializable {
    * 
    * @return Observed class distribution
    */
-//  protected
-  public double[] getObservedClassDistribution() {
+  protected double[] getObservedClassDistribution() {
     return this.observedClassDistribution.getArrayCopy();
   }
 
@@ -92,8 +91,7 @@ public abstract class Node implements java.io.Serializable {
    * 
    * @return Flag whether class distribution is pure or not.
    */
-//  protected
-  public boolean observedClassDistributionIsPure() {
+  protected boolean observedClassDistributionIsPure() {
     return (observedClassDistribution.numNonZeroEntries() < 2);
   }
 

@@ -29,21 +29,23 @@ import org.apache.samoa.learners.classifiers.ModelAggregator;
  * @author Arinto Murdopo
  * 
  */
-public abstract class LearningNode extends Node {
+abstract class LearningNode extends Node {
 
   private static final long serialVersionUID = 7157319356146764960L;
 
   protected LearningNode(double[] classObservation) {
     super(classObservation);
   }
-  
+
   /**
    * Method to process the instance for learning
    *
-   * @param inst The processed instance
-   * @param proc The model aggregator processor where this learning node exists
+   * @param inst
+   *          The processed instance
+   * @param proc
+   *          The model aggregator processor where this learning node exists
    */
-  public abstract void learnFromInstance(Instance inst, ModelAggregator proc);
+  abstract void learnFromInstance(Instance inst, ModelAggregator proc);
 
   @Override
   protected boolean isLeaf() {
@@ -51,7 +53,7 @@ public abstract class LearningNode extends Node {
   }
 
   @Override
-  public FoundNode filterInstanceToLeaf(Instance inst, SplitNode parent,
+  protected FoundNode filterInstanceToLeaf(Instance inst, SplitNode parent,
       int parentBranch) {
     return new FoundNode(this, parent, parentBranch);
   }

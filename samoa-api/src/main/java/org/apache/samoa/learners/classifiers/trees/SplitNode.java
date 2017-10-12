@@ -47,7 +47,7 @@ public class SplitNode extends Node {
   }
 
   @Override
-  public FoundNode filterInstanceToLeaf(Instance inst, SplitNode parent, int parentBranch) {
+  FoundNode filterInstanceToLeaf(Instance inst, SplitNode parent, int parentBranch) {
     int childIndex = instanceChildIndex(inst);
     if (childIndex >= 0) {
       Node child = getChild(childIndex);
@@ -65,7 +65,7 @@ public class SplitNode extends Node {
   }
 
   @Override
-  public double[] getClassVotes(Instance inst, ModelAggregator vht) {
+  double[] getClassVotes(Instance inst, ModelAggregator vht) {
     return this.observedClassDistribution.getArrayCopy();
   }
 
@@ -74,7 +74,7 @@ public class SplitNode extends Node {
    * 
    * @return number of children
    */
-  public int numChildren() {
+  int numChildren() {
     return this.children.size();
   }
 
@@ -86,7 +86,7 @@ public class SplitNode extends Node {
    * @param child
    *          The child node
    */
-  public void setChild(int index, Node child) {
+  void setChild(int index, Node child) {
     if ((this.splitTest.maxBranches() >= 0)
         && (index >= this.splitTest.maxBranches())) {
       throw new IndexOutOfBoundsException();
@@ -101,7 +101,7 @@ public class SplitNode extends Node {
    *          The child node index
    * @return The child node in the given index
    */
-  public Node getChild(int index) {
+  Node getChild(int index) {
     return this.children.get(index);
   }
 
