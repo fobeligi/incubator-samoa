@@ -22,9 +22,6 @@ package org.apache.samoa.learners.classifiers.trees;
 
 import static org.apache.samoa.moa.core.Utils.maxIndex;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -102,16 +99,7 @@ public class ModelAggregatorProcessor implements ModelAggregator, Processor {
   private final int gracePeriod;
   private final int parallelismHint;
   private final long timeOut;
-  
-  //------
-  private long instancesSeenAtModelUpdate ;
-  
-  private File metrics;
-  private String datapath = "/Users/fobeligi/Documents/GBDT/experiments-output/classification/classification";
-  private PrintStream metadataStream = null;
-  private boolean firstEvent = true;
-  //------
-  
+
   // private constructor based on Builder pattern
   private ModelAggregatorProcessor(Builder builder) {
     this.dataset = builder.dataset;
@@ -126,7 +114,7 @@ public class ModelAggregatorProcessor implements ModelAggregator, Processor {
     InstancesHeader ih = new InstancesHeader(dataset);
     this.setModelContext(ih);
   }
-  
+
   @Override
   public boolean process(ContentEvent event) {
 
@@ -145,20 +133,6 @@ public class ModelAggregatorProcessor implements ModelAggregator, Processor {
 
     // Receive a new instance from source
     if (event instanceof InstancesContentEvent) {
-      instancesSeenAtModelUpdate++;//
-  
-      if (firstEvent) {
-        try {
-          metrics = new File(datapath+"_model_updates.csv");
-          metadataStream = new PrintStream(
-                  new FileOutputStream(metrics), true);
-          metadataStream.println("Instances seen,model id,splitId, active Leaf Nodes,decision Nodes" );
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-        firstEvent=false;
-      }
-      
       InstancesContentEvent instancesEvent = (InstancesContentEvent) event;
       this.processInstanceContentEvent(instancesEvent);
       // Send information to local-statistic PI
@@ -249,15 +223,15 @@ public class ModelAggregatorProcessor implements ModelAggregator, Processor {
     return sb.toString();
   }
 
-  public void setResultStream(Stream resultStream) {
+  void setResultStream(Stream resultStream) {
     this.resultStream = resultStream;
   }
 
-  public void setAttributeStream(Stream attributeStream) {
+  void setAttributeStream(Stream attributeStream) {
     this.attributeStream = attributeStream;
   }
 
-  public void setControlStream(Stream controlStream) {
+  void setControlStream(Stream controlStream) {
     this.controlStream = controlStream;
   }
 
@@ -391,7 +365,7 @@ public class ModelAggregatorProcessor implements ModelAggregator, Processor {
    * @param inst
    * @return
    */
-  public double[] getVotesForInstance(Instance inst) {
+  private double[] getVotesForInstance(Instance inst) {
     return getVotesForInstance(inst, false);
   }
 
@@ -554,11 +528,6 @@ public class ModelAggregatorProcessor implements ModelAggregator, Processor {
           parent.setChild(parentBranch, newSplit);
         }
       }
-      //metrics = ("Instances seen,model id,splitId, active Leaf Nodes,decision Nodes")
-//      String metricsData = instancesSeenAtModelUpdate + "," + this.processorId+"," + this.splitId +"," + this.activeLeafNodeCount + "," + this.decisionNodeCount;
-//      this.metadataStream.println(metricsData);
-      setInstancesSeenAtModelUpdate(0) ;
-      //---
       // TODO: add check on the model's memory size
     }
 
@@ -684,7 +653,7 @@ public class ModelAggregatorProcessor implements ModelAggregator, Processor {
    * @author Arinto Murdopo
    * 
    */
-  public static class Builder {
+  static class Builder {
 
     // required parameters
     private final Instances dataset;
@@ -698,11 +667,11 @@ public class ModelAggregatorProcessor implements ModelAggregator, Processor {
     private long timeOut = 30;
     private ChangeDetector changeDetector = null;
 
-    public Builder(Instances dataset) {
+    Builder(Instances dataset) {
       this.dataset = dataset;
     }
 
-    public Builder(ModelAggregatorProcessor oldProcessor) {
+    Builder(ModelAggregatorProcessor oldProcessor) {
       this.dataset = oldProcessor.dataset;
       this.splitCriterion = oldProcessor.splitCriterion;
       this.splitConfidence = oldProcessor.splitConfidence;
@@ -711,49 +680,45 @@ public class ModelAggregatorProcessor implements ModelAggregator, Processor {
       this.parallelismHint = oldProcessor.parallelismHint;
       this.timeOut = oldProcessor.timeOut;
     }
-  
-    public Builder splitCriterion(SplitCriterion splitCriterion) {
+
+    Builder splitCriterion(SplitCriterion splitCriterion) {
       this.splitCriterion = splitCriterion;
       return this;
     }
-  
-    public Builder splitConfidence(double splitConfidence) {
+
+    Builder splitConfidence(double splitConfidence) {
       this.splitConfidence = splitConfidence;
       return this;
     }
-  
-    public Builder tieThreshold(double tieThreshold) {
+
+    Builder tieThreshold(double tieThreshold) {
       this.tieThreshold = tieThreshold;
       return this;
     }
-  
-    public Builder gracePeriod(int gracePeriod) {
+
+    Builder gracePeriod(int gracePeriod) {
       this.gracePeriod = gracePeriod;
       return this;
     }
-  
-    public Builder parallelismHint(int parallelismHint) {
+
+    Builder parallelismHint(int parallelismHint) {
       this.parallelismHint = parallelismHint;
       return this;
     }
-  
-    public Builder timeOut(long timeOut) {
+
+    Builder timeOut(long timeOut) {
       this.timeOut = timeOut;
       return this;
     }
-  
-    public Builder changeDetector(ChangeDetector changeDetector) {
+
+    Builder changeDetector(ChangeDetector changeDetector) {
       this.changeDetector = changeDetector;
       return this;
     }
-  
-    public ModelAggregatorProcessor build() {
+
+    ModelAggregatorProcessor build() {
       return new ModelAggregatorProcessor(this);
     }
   }
-  
-  public void setInstancesSeenAtModelUpdate(long instancesSeenAtModelUpdate) {
-    this.instancesSeenAtModelUpdate = instancesSeenAtModelUpdate;
-  }
-  
+
 }

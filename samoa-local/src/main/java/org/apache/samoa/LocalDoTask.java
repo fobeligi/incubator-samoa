@@ -31,11 +31,6 @@ import com.github.javacliparser.FlagOption;
 import com.github.javacliparser.IntOption;
 import com.github.javacliparser.Option;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
-
 /**
  * The Class DoTask.
  */
@@ -51,10 +46,6 @@ public class LocalDoTask {
   private static final String STATUS_UPDATE_FREQ_MSG = "Wait time in milliseconds between status updates.";
   private static final Logger logger = LoggerFactory.getLogger(LocalDoTask.class);
 
-  public static String command = "";
-  public static String dataSet = "";
-  private static transient PrintStream metadataStream = null;
-
   /**
    * The main method.
    * 
@@ -62,6 +53,10 @@ public class LocalDoTask {
    *          the arguments
    */
   public static void main(String[] args) {
+
+    // ArrayList<String> tmpArgs = new ArrayList<String>(Arrays.asList(args));
+
+    // args = tmpArgs.toArray(new String[0]);
 
     FlagOption suppressStatusOutOpt = new FlagOption("suppressStatusOut", 'S', SUPPRESS_STATUS_OUT_MSG);
 
@@ -74,28 +69,10 @@ public class LocalDoTask {
 
     StringBuilder cliString = new StringBuilder();
     for (String arg : args) {
-      if (arg.endsWith(".arff)")) {
-        dataSet = (arg.substring(arg.lastIndexOf("/") + 1));
-        dataSet = dataSet.substring(0, dataSet.length()-1);
-      }
       cliString.append(" ").append(arg);
     }
     logger.debug("Command line string = {}", cliString.toString());
-    command = cliString.toString();
     System.out.println("Command line string = " + cliString.toString());
-    try {
-      String datapath = "/lhome/fobeligi/GBDT/experiments-output/LOCAL-optimized-final/commands/";
-      File metrics = new File(datapath+dataSet+"_commands.csv");
-      metadataStream = new PrintStream(
-              new FileOutputStream(metrics,true), true);
-      metadataStream.println("Command,dataset,framework");
-      metadataStream.println(command + ","+ dataSet+ ",LOCAL");
-      metadataStream.println("#COMPLETED");
-      metadataStream.flush();
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
-
 
     Task task;
     try {

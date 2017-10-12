@@ -22,10 +22,6 @@ package org.apache.samoa.topology.impl;
 
 import com.github.javacliparser.ClassOption;
 
-
-import java.io.FileOutputStream;
-import java.io.PrintStream;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -54,9 +50,6 @@ public class StormSamoaUtils {
   static final String KEY_FIELD = "key";
   static final String CONTENT_EVENT_FIELD = "content_event";
 
-  public static String command = "";
-  public static String dataSet = "";
-
   static Properties getProperties() throws IOException {
     Properties props = new Properties();
     InputStream is;
@@ -80,28 +73,8 @@ public class StormSamoaUtils {
     StringBuilder cliString = new StringBuilder();
     for (String arg : args) {
       cliString.append(" ").append(arg);
-      if (arg.endsWith(".arff)")) {//
-        dataSet = (arg.substring(arg.lastIndexOf("/") + 1));
-        dataSet = dataSet.substring(0, dataSet.length()-1);
-      }//
     }
     logger.debug("Command line string = {}", cliString.toString());
-    command = cliString.toString(); //
-
-    //------- faye
-    try {
-      String datapath = "/lhome/fobeligi/GBDT/experiments-output/STORM-optimized-final/commands/";
-      File metrics = new File(datapath+dataSet+"_commands.csv");
-      PrintStream metadataStream = new PrintStream(new FileOutputStream(metrics,true), true);
-      metadataStream.println("command,dataset,framework" );
-      metadataStream.println(command + ","+ dataSet+ ",STORM");
-      metadataStream.println("#COMPLETED");
-      metadataStream.flush();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    //---
-    //-------
 
     Task task = getTask(cliString.toString());
 

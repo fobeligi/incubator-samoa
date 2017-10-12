@@ -38,7 +38,7 @@ public final class LocalResultContentEvent implements ContentEvent {
   private final AttributeSplitSuggestion secondBestSuggestion;
   private final long splitId;
   
-  private int ensembleId;//faye boostVHT
+  private int ensembleId; //the id of the ensemble that asked for the local statistics
 
   public LocalResultContentEvent() {
     bestSuggestion = null;
@@ -94,8 +94,7 @@ public final class LocalResultContentEvent implements ContentEvent {
   public boolean isLastEvent() {
     return false;
   }
-  
-  //-------//faye boostVHT
+
   public int getEnsembleId() {
     return ensembleId;
   }
