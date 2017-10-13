@@ -24,7 +24,6 @@ import java.util.*;
 
 import com.google.common.collect.EvictingQueue;
 import org.apache.samoa.instances.Attribute;
-import org.apache.samoa.learners.classifiers.ModelAggregator;
 import org.apache.samoa.instances.Instance;
 import org.apache.samoa.moa.classifiers.core.AttributeSplitSuggestion;
 import org.slf4j.Logger;
@@ -55,14 +54,14 @@ public final class ActiveLearningNode extends LearningNode {
   private int suggestionCtr;
   private int thrownAwayInstance;
 
-  private int ensembleId; //faye boostVHT
+  private int ensembleId; //the id of the ensemble that send the message.
 
   private boolean isSplitting;
 
   public ActiveLearningNode(double[] classObservation, int parallelismHint, SplittingOption splitOption, int maxBufferSize) {
     super(classObservation);
     this.weightSeenAtLastSplitEvaluation = this.getWeightSeen();
-    this.id = VerticalHoeffdingTree.LearningNodeIdGenerator.generate(); //todo (faye) :: ask if this could affect the singleton property.
+    this.id = VerticalHoeffdingTree.LearningNodeIdGenerator.generate();
     this.attributeContentEventKeys = new HashMap<>();
     this.isSplitting = false;
     this.parallelismHint = parallelismHint;
@@ -75,7 +74,7 @@ public final class ActiveLearningNode extends LearningNode {
     return id;
   }
 
-  public AttributeBatchContentEvent[] attributeBatchContentEvent;
+  protected AttributeBatchContentEvent[] attributeBatchContentEvent;
 
   public AttributeBatchContentEvent[] getAttributeBatchContentEvent() {
     return this.attributeBatchContentEvent;
@@ -86,7 +85,7 @@ public final class ActiveLearningNode extends LearningNode {
   }
 
   @Override
-  public void learnFromInstance(Instance inst, ModelAggregator proc) {
+  public void learnFromInstance(Instance inst, ModelAggregatorProcessor proc) {
     if (isSplitting) {
       switch (this.splittingOption) {
         case THROW_AWAY:
@@ -139,23 +138,23 @@ public final class ActiveLearningNode extends LearningNode {
   }
 
   @Override
-  public double[] getClassVotes(Instance inst, ModelAggregator map) {
+  double[] getClassVotes(Instance inst, ModelAggregatorProcessor map) {
     return this.observedClassDistribution.getArrayCopy();
   }
 
-  public double getWeightSeen() {
+  double getWeightSeen() {
     return this.observedClassDistribution.sumOfValues();
   }
 
-  public void setWeightSeenAtLastSplitEvaluation(double weight) {
+  void setWeightSeenAtLastSplitEvaluation(double weight) {
     this.weightSeenAtLastSplitEvaluation = weight;
   }
 
-  public double getWeightSeenAtLastSplitEvaluation() {
+  double getWeightSeenAtLastSplitEvaluation() {
     return this.weightSeenAtLastSplitEvaluation;
   }
 
-  public void requestDistributedSuggestions(long splitId, ModelAggregator modelAggrProc) {
+  void requestDistributedSuggestions(long splitId, ModelAggregatorProcessor modelAggrProc) {
     this.isSplitting = true;
     this.suggestionCtr = 0;
     this.thrownAwayInstance = 0;
@@ -167,7 +166,7 @@ public final class ActiveLearningNode extends LearningNode {
     modelAggrProc.sendToControlStream(cce);
   }
 
-  public void addDistributedSuggestions(AttributeSplitSuggestion bestSuggestion, AttributeSplitSuggestion secondBestSuggestion) {
+  void addDistributedSuggestions(AttributeSplitSuggestion bestSuggestion, AttributeSplitSuggestion secondBestSuggestion) {
     // starts comparing from the best suggestion
     if (bestSuggestion != null) {
       if ((this.bestSuggestion == null) || (bestSuggestion.compareTo(this.bestSuggestion) > 0)) {
@@ -229,7 +228,6 @@ public final class ActiveLearningNode extends LearningNode {
     return buffer;
   }
 
-  //-----------------faye boostVHT
   public int getEnsembleId() {
     return ensembleId;
   }

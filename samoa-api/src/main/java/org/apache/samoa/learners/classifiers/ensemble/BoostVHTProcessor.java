@@ -27,8 +27,8 @@ import org.apache.samoa.instances.Instances;
 import org.apache.samoa.learners.InstanceContentEvent;
 import org.apache.samoa.learners.ResultContentEvent;
 import org.apache.samoa.learners.classifiers.trees.ActiveLearningNode;
-import org.apache.samoa.learners.classifiers.trees.BoostMAProcessor;
 import org.apache.samoa.learners.classifiers.trees.LocalResultContentEvent;
+import org.apache.samoa.learners.classifiers.trees.ModelAggregatorProcessor;
 import org.apache.samoa.moa.classifiers.core.splitcriteria.InfoGainSplitCriterion;
 import org.apache.samoa.moa.classifiers.core.splitcriteria.SplitCriterion;
 import org.apache.samoa.moa.core.DoubleVector;
@@ -80,7 +80,7 @@ public class BoostVHTProcessor implements Processor {
   /** The attribute stream. */
   private Stream attributeStream;
   
-  protected BoostMAProcessor[] mAPEnsemble;
+  protected ModelAggregatorProcessor[] mAPEnsemble;
 
   /** Ramdom number generator. */
   protected Random random; //TODO make random seed configurable
@@ -125,7 +125,7 @@ public class BoostVHTProcessor implements Processor {
 
     if (event instanceof InstanceContentEvent) {
       InstanceContentEvent inEvent = (InstanceContentEvent) event;
-      //todo:: (Faye) check if any precondition is needed
+      //todo:: check if any precondition is needed
 
       if (inEvent.isTesting()) {
         double[] combinedPrediction = computeBoosting(inEvent);
@@ -148,7 +148,7 @@ public class BoostVHTProcessor implements Processor {
   @Override
   public void onCreate(int id) {
     
-    mAPEnsemble = new BoostMAProcessor[ensembleSize];
+    mAPEnsemble = new ModelAggregatorProcessor[ensembleSize];
 
     random = new Random(seed);
 
@@ -158,7 +158,7 @@ public class BoostVHTProcessor implements Processor {
 
     //----instantiate the MAs
     for (int i = 0; i < ensembleSize; i++) {
-      BoostMAProcessor newProc = new BoostMAProcessor.Builder(dataset)
+      ModelAggregatorProcessor newProc = new ModelAggregatorProcessor.Builder(dataset)
           .splitCriterion(splitCriterion)
           .splitConfidence(splitConfidence)
           .tieThreshold(tieThreshold)

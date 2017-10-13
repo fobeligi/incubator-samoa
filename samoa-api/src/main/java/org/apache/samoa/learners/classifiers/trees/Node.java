@@ -22,7 +22,6 @@ package org.apache.samoa.learners.classifiers.trees;
 
 import org.apache.samoa.core.DoubleVector;
 import org.apache.samoa.instances.Instance;
-import org.apache.samoa.learners.classifiers.ModelAggregator;
 
 /**
  * Abstract class that represents a node in the tree model.
@@ -58,7 +57,7 @@ abstract class Node implements java.io.Serializable {
    *          ModelAggregatorProcessor
    * @return The prediction result in the form of class distribution
    */
-  abstract double[] getClassVotes(Instance inst, ModelAggregator map);
+  abstract double[] getClassVotes(Instance inst, ModelAggregatorProcessor map);
 
   /**
    * Method to check whether the node is a leaf node or not.

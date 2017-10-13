@@ -23,7 +23,6 @@ package org.apache.samoa.learners.classifiers.trees;
 import org.apache.samoa.instances.Instance;
 import org.apache.samoa.moa.classifiers.core.conditionaltests.InstanceConditionalTest;
 import org.apache.samoa.moa.core.AutoExpandVector;
-import org.apache.samoa.learners.classifiers.ModelAggregator;
 
 /**
  * SplitNode represents the node that contains one or more questions in the decision tree model, in order to route the
@@ -65,7 +64,7 @@ public class SplitNode extends Node {
   }
 
   @Override
-  double[] getClassVotes(Instance inst, ModelAggregator vht) {
+  double[] getClassVotes(Instance inst, ModelAggregatorProcessor vht) {
     return this.observedClassDistribution.getArrayCopy();
   }
 

@@ -21,7 +21,6 @@ package org.apache.samoa.learners.classifiers.trees;
  */
 
 import org.apache.samoa.instances.Instance;
-import org.apache.samoa.learners.classifiers.ModelAggregator;
 
 /**
  * Abstract class that represents a learning node
@@ -45,7 +44,7 @@ abstract class LearningNode extends Node {
    * @param proc
    *          The model aggregator processor where this learning node exists
    */
-  abstract void learnFromInstance(Instance inst, ModelAggregator proc);
+  abstract void learnFromInstance(Instance inst, ModelAggregatorProcessor proc);
 
   @Override
   protected boolean isLeaf() {
