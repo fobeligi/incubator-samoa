@@ -560,8 +560,6 @@ public final class ModelAggregatorProcessor implements Processor {
       // this.splittingNodes.put(Long.valueOf(this.splitId), new
       // SplittingNodeInfo(activeLearningNode, foundNode, null));
       this.splittingNodes.put(this.splitId, new SplittingNodeInfo(activeLearningNode, foundNode, timeOutHandler));
-      // for BoostVHT the following should be called
-      //      this.splittingNodes.put(this.splitId, new SplittingNodeInfo(activeLearningNode, foundNode));
 
       // Inform Local Statistic PI to perform local statistic calculation
       activeLearningNode.requestDistributedSuggestions(this.splitId, this);

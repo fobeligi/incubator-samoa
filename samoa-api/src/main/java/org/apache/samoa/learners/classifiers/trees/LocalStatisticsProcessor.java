@@ -21,6 +21,7 @@ package org.apache.samoa.learners.classifiers.trees;
  */
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -75,15 +76,52 @@ public final class LocalStatisticsProcessor implements Processor {
 
   @Override
   public boolean process(ContentEvent event) {
+    // process AttributeContentEvent by updating the subset of local statistics
+    if (event instanceof AttributeBatchContentEvent) {
+      AttributeBatchContentEvent abce = (AttributeBatchContentEvent) event;
+      List<ContentEvent> contentEventList = abce.getContentEventList();
+      for (ContentEvent contentEvent : contentEventList) {
+        AttributeContentEvent ace = (AttributeContentEvent) contentEvent;
+        Long learningNodeId = ace.getLearningNodeId();
+        Integer obsIndex = ace.getObsIndex();
 
-    if (event instanceof AttributeSliceEvent) {
+        AttributeClassObserver obs = localStats.get(
+            learningNodeId, obsIndex);
+
+        if (obs == null) {
+          obs = ace.isNominal() ? newNominalClassObserver()
+              : newNumericClassObserver();
+          localStats.put(ace.getLearningNodeId(), obsIndex, obs);
+        }
+        obs.observeAttributeClass(ace.getAttrVal(), ace.getClassVal(),
+            ace.getWeight());
+      }
+
+      /*
+       * if (event instanceof AttributeContentEvent) { AttributeContentEvent ace
+       * = (AttributeContentEvent) event; Long learningNodeId =
+       * Long.valueOf(ace.getLearningNodeId()); Integer obsIndex =
+       * Integer.valueOf(ace.getObsIndex());
+       *
+       * AttributeClassObserver obs = localStats.get( learningNodeId, obsIndex);
+       *
+       * if (obs == null) { obs = ace.isNominal() ? newNominalClassObserver() :
+       * newNumericClassObserver(); localStats.put(ace.getLearningNodeId(),
+       * obsIndex, obs); } obs.observeAttributeClass(ace.getAttrVal(),
+       * ace.getClassVal(), ace.getWeight());
+       */
+    } else if (event instanceof AttributeSliceEvent) {
       AttributeSliceEvent ase = (AttributeSliceEvent) event;
       processAttributeSlice(ase);
 
-    } else {
+    } else if (event instanceof ComputeContentEvent){
       ComputeContentEvent cce = (ComputeContentEvent) event;
       processComputeEvent(cce);
 
+    } else if (event instanceof DeleteContentEvent) {
+      DeleteContentEvent dce = (DeleteContentEvent) event;
+      Long learningNodeId = dce.getLearningNodeId();
+      localStats.rowMap().remove(learningNodeId);
     }
     return true;
   }
@@ -101,7 +139,9 @@ public final class LocalStatisticsProcessor implements Processor {
       AttributeSplitSuggestion suggestion = obs
           .getBestEvaluatedSplitSuggestion(splitCriterion,
               preSplitDist, entry.getKey(), binarySplit);
-      if (suggestion == null) {
+      //consider of using list to collect the suggestions (as in master branch.
+      // In that way the change on AttributeSplitSuggestion class can be reverted as well.)
+      if (suggestion == null) { // further investigate this difference from master branch.
         suggestion = new AttributeSplitSuggestion();
       }
       suggestions[curIndex] = suggestion;
@@ -175,11 +215,11 @@ public final class LocalStatisticsProcessor implements Processor {
   }
 
   private AttributeClassObserver newNominalClassObserver() {
-    return new NominalAttributeClassObserver();
+    return new NominalAttributeClassObserver(); //further investigate this change
   }
 
   private AttributeClassObserver newNumericClassObserver() {
-    return new GaussianNumericAttributeClassObserver();
+    return new GaussianNumericAttributeClassObserver();//further investigate this change
   }
 
   /**
