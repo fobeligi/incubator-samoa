@@ -26,7 +26,7 @@ import org.apache.samoa.instances.Instance;
 import org.apache.samoa.instances.Instances;
 import org.apache.samoa.learners.InstanceContentEvent;
 import org.apache.samoa.learners.ResultContentEvent;
-import org.apache.samoa.learners.classifiers.trees.ActiveLearningNode;
+import org.apache.samoa.learners.classifiers.trees.ActiveLearningNode.SplittingOption;
 import org.apache.samoa.learners.classifiers.trees.LocalResultContentEvent;
 import org.apache.samoa.learners.classifiers.trees.ModelAggregatorProcessor;
 import org.apache.samoa.moa.classifiers.core.splitcriteria.InfoGainSplitCriterion;
@@ -60,7 +60,7 @@ public class BoostVHTProcessor implements Processor {
   
   private int timeOut;
 
-  private ActiveLearningNode.SplittingOption splittingOption;
+  private SplittingOption splittingOption;
   
   //------
   
@@ -94,7 +94,7 @@ public class BoostVHTProcessor implements Processor {
   protected double[] swms;
   private double[] e_m;
 
-  private double trainingWeightSeenByModel; //todo:: (Faye) when is this updated?
+  private double trainingWeightSeenByModel;
 
   private int numberOfClasses;
 
@@ -234,7 +234,7 @@ public class BoostVHTProcessor implements Processor {
   private double getEnsembleMemberWeight(int i) {
     double em = this.swms[i] / (this.scms[i] + this.swms[i]);
 //    if ((em == 0.0) || (em > 0.5)) {
-    if ((em == 0.0) || (em > (1.0 - 1.0/this.numberOfClasses))) { //for SAMME
+    if ((em == 0.0) || (em > (1.0 - 1.0/this.numberOfClasses))) { //for SAMME todo:: maybe remove the code for SAMME?
       return 0.0;
     }
     double Bm = em / (1.0 - em);
@@ -271,7 +271,7 @@ public class BoostVHTProcessor implements Processor {
     private int gracePeriod;
     private int parallelismHint;
     private int timeOut = Integer.MAX_VALUE;
-    private ActiveLearningNode.SplittingOption splittingOption;
+    private SplittingOption splittingOption;
     private int maxBufferSize;
     private int seed;
 
@@ -333,7 +333,7 @@ public class BoostVHTProcessor implements Processor {
       return this;
     }
 
-    public Builder splittingOption(ActiveLearningNode.SplittingOption splittingOption) {
+    public Builder splittingOption(SplittingOption splittingOption) {
       this.splittingOption = splittingOption;
       return this;
     }
