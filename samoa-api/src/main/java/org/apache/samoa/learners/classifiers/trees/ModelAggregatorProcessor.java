@@ -786,7 +786,7 @@ public final class ModelAggregatorProcessor implements Processor {
     private int parallelismHint = 1;
     private long timeOut = 30;
     private ChangeDetector changeDetector = null;
-    private SplittingOption splittingOption;
+    private SplittingOption splittingOption = SplittingOption.THROW_AWAY;
     private int maxBufferSize = 0;
 
     public Builder(Instances dataset) {
